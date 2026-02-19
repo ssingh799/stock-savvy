@@ -2,104 +2,176 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark financial terminal theme */
+    --background: 220 20% 7%;
+    --foreground: 210 30% 94%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 18% 11%;
+    --card-foreground: 210 30% 94%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 18% 11%;
+    --popover-foreground: 210 30% 94%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 152 69% 42%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 15% 17%;
+    --secondary-foreground: 210 30% 94%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 215 16% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 43 96% 56%;
+    --accent-foreground: 220 20% 7%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 90% 58%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 15% 18%;
+    --input: 220 15% 17%;
+    --ring: 152 69% 42%;
 
-    --radius: 0.5rem;
+    --radius: 0.6rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom semantic tokens */
+    --bullish: 152 69% 42%;
+    --bullish-dim: 152 60% 32%;
+    --bullish-bg: 152 60% 10%;
+    --bearish: 4 90% 58%;
+    --bearish-dim: 4 80% 45%;
+    --bearish-bg: 4 80% 10%;
+    --gold: 43 96% 56%;
+    --gold-dim: 43 80% 40%;
+    --gold-bg: 43 80% 10%;
+    --neutral: 215 16% 55%;
+    --surface-1: 220 18% 11%;
+    --surface-2: 220 16% 14%;
+    --surface-3: 220 14% 18%;
+    --glow-green: 152 69% 42%;
+    --ticker-speed: 40s;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 220 20% 8%;
+    --sidebar-foreground: 210 30% 94%;
+    --sidebar-primary: 152 69% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 15% 14%;
+    --sidebar-accent-foreground: 210 30% 94%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 152 69% 42%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
+
+@layer utilities {
+  .text-bullish { color: hsl(var(--bullish)); }
+  .text-bearish { color: hsl(var(--bearish)); }
+  .text-gold { color: hsl(var(--gold)); }
+  .text-neutral { color: hsl(var(--neutral)); }
+
+  .bg-bullish { background-color: hsl(var(--bullish)); }
+  .bg-bearish { background-color: hsl(var(--bearish)); }
+  .bg-gold { background-color: hsl(var(--gold)); }
+  .bg-bullish-bg { background-color: hsl(var(--bullish-bg)); }
+  .bg-bearish-bg { background-color: hsl(var(--bearish-bg)); }
+  .bg-gold-bg { background-color: hsl(var(--gold-bg)); }
+
+  .border-bullish { border-color: hsl(var(--bullish)); }
+  .border-bearish { border-color: hsl(var(--bearish)); }
+  .border-gold { border-color: hsl(var(--gold)); }
+
+  .bg-surface-1 { background-color: hsl(var(--surface-1)); }
+  .bg-surface-2 { background-color: hsl(var(--surface-2)); }
+  .bg-surface-3 { background-color: hsl(var(--surface-3)); }
+
+  .glow-green {
+    box-shadow: 0 0 20px hsl(var(--bullish) / 0.3), 0 0 40px hsl(var(--bullish) / 0.1);
+  }
+  .glow-red {
+    box-shadow: 0 0 20px hsl(var(--bearish) / 0.3), 0 0 40px hsl(var(--bearish) / 0.1);
+  }
+  .glow-gold {
+    box-shadow: 0 0 20px hsl(var(--gold) / 0.3), 0 0 40px hsl(var(--gold) / 0.1);
+  }
+
+  .card-hover {
+    transition: all 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px hsl(var(--bullish) / 0.15);
+    border-color: hsl(var(--bullish) / 0.4);
+  }
+
+  .gradient-card {
+    background: linear-gradient(135deg, hsl(var(--surface-1)) 0%, hsl(var(--surface-2)) 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(180deg, hsl(220 20% 7% / 0.1) 0%, hsl(var(--background)) 100%);
+  }
+}
+
+/* Ticker animation */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  animation: ticker var(--ticker-speed) linear infinite;
+  white-space: nowrap;
+  display: flex;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+/* Pulse for live indicator */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.live-dot {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+/* Number counter flash */
+@keyframes price-up {
+  0% { background-color: hsl(var(--bullish-bg)); }
+  100% { background-color: transparent; }
+}
+@keyframes price-down {
+  0% { background-color: hsl(var(--bearish-bg)); }
+  100% { background-color: transparent; }
+}
+
+.flash-up { animation: price-up 0.6s ease-out; }
+.flash-down { animation: price-down 0.6s ease-out; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }

@@ -6,9 +6,11 @@ import { Cell } from 'recharts';
 import { PredictionPanel } from '@/components/PredictionPanel';
 import { IPOCard } from '@/components/IPOCard';
 import { nseStocks, bseStocks, stockPredictions, ipoData, marketIndices, Stock } from '@/data/stockData';
-import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu } from 'lucide-react';
+import { useStockData } from '@/hooks/useStockData';
+import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu, Wifi, WifiOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
 import marketBg from '@/assets/market-bg.jpg';
 
 // Simulate live price changes
@@ -216,19 +218,14 @@ interface StockViewProps {
   exchange: 'NSE' | 'BSE';
 }
 
-const StockView = ({ stocks, exchange }: StockViewProps) => {
+const StockView = ({ stocks: fallbackStocks, exchange }: StockViewProps) => {
+  const { stocks: liveStocks, loading, error, lastUpdated, refetch, isLive } = useStockData(exchange);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [search, setSearch] = useState('');
   const [sectorFilter, setSectorFilter] = useState('All');
-  const livePrices = useLivePrices(stocks);
 
+  const stocks = liveStocks.length > 0 ? liveStocks : fallbackStocks;
   const sectors = ['All', ...Array.from(new Set(stocks.map((s) => s.sector)))];
-
-  const enrichedStocks = stocks.map((s) => ({
-    ...s,
-    ...(livePrices[s.symbol] || {}),
-  }));
-
   const prediction = selectedStock ? stockPredictions[selectedStock.symbol] : null;
 
   return (
@@ -237,11 +234,19 @@ const StockView = ({ stocks, exchange }: StockViewProps) => {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-bold text-foreground">{exchange} Stocks</h2>
-          <p className="text-xs text-muted-foreground">{stocks.length} stocks · Click to get AI prediction</p>
+          <p className="text-xs text-muted-foreground">
+            {stocks.length} stocks · Click to get AI prediction
+            {lastUpdated && <span className="ml-1 text-muted-foreground/60">· Updated {new Date(lastUpdated).toLocaleTimeString('en-IN')}</span>}
+          </p>
         </div>
-        <div className="flex items-center gap-1.5 bg-bullish-bg border border-bullish/20 px-3 py-1.5 rounded-full">
-          <span className="w-1.5 h-1.5 bg-bullish rounded-full live-dot" />
-          <span className="text-bullish text-xs font-mono">LIVE</span>
+        <div className="flex items-center gap-2">
+          <button onClick={refetch} className="p-1.5 rounded-lg bg-surface-1 border border-border hover:border-bullish/30 transition-colors" title="Refresh">
+            <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isLive ? 'bg-bullish-bg border border-bullish/20' : 'bg-gold-bg border border-gold/20'}`}>
+            {isLive ? <Wifi className="w-3 h-3 text-bullish" /> : <WifiOff className="w-3 h-3 text-gold" />}
+            <span className={`text-xs font-mono ${isLive ? 'text-bullish' : 'text-gold'}`}>{isLive ? 'LIVE' : 'CACHED'}</span>
+          </div>
         </div>
       </div>
 
@@ -278,11 +283,8 @@ const StockView = ({ stocks, exchange }: StockViewProps) => {
         {/* Stock list */}
         <div className={`${selectedStock ? 'lg:col-span-3' : 'lg:col-span-5'}`}>
           <StockList
-            stocks={enrichedStocks.filter((s) => sectorFilter === 'All' || s.sector === sectorFilter)}
-            onSelect={(stock) => {
-              const found = enrichedStocks.find((s) => s.symbol === stock.symbol) || stock;
-              setSelectedStock(found);
-            }}
+            stocks={stocks.filter((s) => sectorFilter === 'All' || s.sector === sectorFilter)}
+            onSelect={(stock) => setSelectedStock(stock)}
             selectedSymbol={selectedStock?.symbol}
             searchQuery={search}
           />
@@ -308,7 +310,7 @@ const StockView = ({ stocks, exchange }: StockViewProps) => {
                 <PredictionPanel
                   prediction={prediction}
                   stockName={selectedStock.name}
-                  currentPrice={livePrices[selectedStock.symbol]?.price || selectedStock.price}
+                  currentPrice={selectedStock.price}
                 />
               ) : (
                 <div className="bg-surface-1 border border-border rounded-xl p-6 text-center">
@@ -316,11 +318,11 @@ const StockView = ({ stocks, exchange }: StockViewProps) => {
                   <p className="text-sm font-medium text-foreground">{selectedStock.name}</p>
                   <p className="text-xs text-muted-foreground mt-1">Full prediction coming soon for this stock</p>
                   <p className="font-mono font-bold text-2xl text-bullish mt-3">
-                    ₹{(livePrices[selectedStock.symbol]?.price || selectedStock.price).toLocaleString('en-IN')}
+                    ₹{selectedStock.price.toLocaleString('en-IN')}
                   </p>
-                  <p className={`text-sm font-mono mt-1 ${(livePrices[selectedStock.symbol]?.changePercent || selectedStock.changePercent) >= 0 ? 'text-bullish' : 'text-bearish'}`}>
-                    {(livePrices[selectedStock.symbol]?.changePercent || selectedStock.changePercent) >= 0 ? '+' : ''}
-                    {(livePrices[selectedStock.symbol]?.changePercent || selectedStock.changePercent).toFixed(2)}%
+                  <p className={`text-sm font-mono mt-1 ${selectedStock.changePercent >= 0 ? 'text-bullish' : 'text-bearish'}`}>
+                    {selectedStock.changePercent >= 0 ? '+' : ''}
+                    {selectedStock.changePercent.toFixed(2)}%
                   </p>
                 </div>
               )}

@@ -3,6 +3,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// In-memory cache (persists across warm invocations)
+const cache: Record<string, { data: any; timestamp: number }> = {};
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 const NSE_SYMBOLS = [
   'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
   'BHARTIARTL.NS', 'WIPRO.NS', 'BAJFINANCE.NS', 'SUNPHARMA.NS', 'MARUTI.NS',
@@ -41,109 +45,71 @@ function cleanSymbol(yahooSymbol: string): string {
   return yahooSymbol.replace('.NS', '').replace('.BO', '');
 }
 
-// Step 1: Get a crumb + cookies from Yahoo Finance
-async function getCrumb(): Promise<{ crumb: string; cookie: string }> {
-  // First, visit Yahoo Finance to get cookies
-  const initRes = await fetch('https://fc.yahoo.com', {
-    redirect: 'manual',
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-  });
-  await initRes.text(); // consume body
+async function fetchSingleChart(sym: string, retries = 2): Promise<any | null> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      });
 
-  const setCookies = initRes.headers.get('set-cookie') || '';
-  
-  // Now get the crumb using the cookies
-  const crumbRes = await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb', {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Cookie': setCookies,
-    },
-  });
-  
-  const crumb = await crumbRes.text();
-  const crumbCookies = crumbRes.headers.get('set-cookie') || setCookies;
-  
-  return { crumb, cookie: crumbCookies };
+      if (res.status === 429 || res.status >= 500) {
+        await res.text();
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+
+      if (!res.ok) { await res.text(); return null; }
+
+      const data = await res.json();
+      const meta = data?.chart?.result?.[0]?.meta;
+      if (!meta) return null;
+
+      const prevClose = meta.chartPreviousClose || meta.previousClose || meta.regularMarketPrice;
+      const currentPrice = meta.regularMarketPrice;
+      const change = currentPrice - prevClose;
+      const changePct = prevClose ? (change / prevClose) * 100 : 0;
+
+      return {
+        symbol: sym,
+        shortName: meta.shortName || meta.symbol,
+        longName: meta.longName || meta.shortName || meta.symbol,
+        regularMarketPrice: currentPrice,
+        regularMarketChange: change,
+        regularMarketChangePercent: changePct,
+        regularMarketVolume: meta.regularMarketVolume,
+        marketCap: 0,
+        trailingPE: 0,
+        fiftyTwoWeekHigh: meta.fiftyTwoWeekHigh,
+        fiftyTwoWeekLow: meta.fiftyTwoWeekLow,
+        regularMarketOpen: meta.regularMarketOpen || currentPrice,
+        regularMarketPreviousClose: prevClose,
+      };
+    } catch {
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    }
+  }
+  return null;
 }
 
 async function fetchQuotes(symbols: string[]): Promise<any[]> {
-  // Try crumb-based auth first
-  try {
-    const { crumb, cookie } = await getCrumb();
-    
-    if (crumb && !crumb.includes('error')) {
-      const symbolList = symbols.join(',');
-      const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbolList)}&crumb=${encodeURIComponent(crumb)}`;
-      
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Cookie': cookie,
-        },
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        return data?.quoteResponse?.result || [];
-      }
-      await res.text(); // consume body
-    }
-  } catch (e) {
-    console.log('Crumb auth failed, trying fallback:', e.message);
-  }
-
-  // Fallback: use individual chart endpoint (no auth needed)
   const results: any[] = [];
-  
-  // Fetch in parallel batches
   const batchSize = 5;
   for (let i = 0; i < symbols.length; i += batchSize) {
     const batch = symbols.slice(i, i + batchSize);
-    const promises = batch.map(async (sym) => {
-      try {
-        const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`;
-        const res = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-        });
-        
-        if (!res.ok) {
-          await res.text();
-          return null;
-        }
-        
-        const data = await res.json();
-        const meta = data?.chart?.result?.[0]?.meta;
-        if (!meta) return null;
-        
-        const prevClose = meta.chartPreviousClose || meta.previousClose || meta.regularMarketPrice;
-        const currentPrice = meta.regularMarketPrice;
-        const change = currentPrice - prevClose;
-        const changePct = prevClose ? (change / prevClose) * 100 : 0;
-        
-        return {
-          symbol: sym,
-          shortName: meta.shortName || meta.symbol,
-          longName: meta.longName || meta.shortName || meta.symbol,
-          regularMarketPrice: currentPrice,
-          regularMarketChange: change,
-          regularMarketChangePercent: changePct,
-          regularMarketVolume: meta.regularMarketVolume,
-          marketCap: 0,
-          trailingPE: 0,
-          fiftyTwoWeekHigh: meta.fiftyTwoWeekHigh,
-          fiftyTwoWeekLow: meta.fiftyTwoWeekLow,
-          regularMarketOpen: meta.regularMarketOpen || currentPrice,
-          regularMarketPreviousClose: prevClose,
-        };
-      } catch {
-        return null;
-      }
-    });
-    
-    const batchResults = await Promise.all(promises);
+    const batchResults = await Promise.all(batch.map(sym => fetchSingleChart(sym)));
     results.push(...batchResults.filter(Boolean));
+    if (i + batchSize < symbols.length) {
+      await new Promise(r => setTimeout(r, 300));
+    }
   }
-  
   return results;
 }
 
@@ -157,7 +123,25 @@ Deno.serve(async (req) => {
     const exchange = url.searchParams.get('exchange') || 'NSE';
     const symbols = exchange === 'BSE' ? BSE_SYMBOLS : NSE_SYMBOLS;
 
+    // Check cache first
+    const cached = cache[exchange];
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return new Response(JSON.stringify({ ...cached.data, fromCache: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const quotes = await fetchQuotes(symbols);
+
+    if (quotes.length === 0) {
+      // Return stale cache if available, otherwise error
+      if (cached) {
+        return new Response(JSON.stringify({ ...cached.data, fromCache: true, stale: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error('No stock data could be fetched');
+    }
 
     const stocks = quotes.map((q: any) => {
       const sym = cleanSymbol(q.symbol || '');
@@ -179,7 +163,10 @@ Deno.serve(async (req) => {
       };
     });
 
-    return new Response(JSON.stringify({ stocks, fetchedAt: new Date().toISOString() }), {
+    const responseData = { stocks, fetchedAt: new Date().toISOString() };
+    cache[exchange] = { data: responseData, timestamp: Date.now() };
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

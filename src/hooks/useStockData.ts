@@ -11,6 +11,7 @@ interface StockDataResult {
   lastUpdated: string | null;
   refetch: () => void;
   isLive: boolean;
+  fromCache: boolean;
 }
 
 export function useStockData(exchange: 'NSE' | 'BSE'): StockDataResult {
@@ -20,6 +21,7 @@ export function useStockData(exchange: 'NSE' | 'BSE'): StockDataResult {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
 
   const fetchStocks = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -47,6 +49,7 @@ export function useStockData(exchange: 'NSE' | 'BSE'): StockDataResult {
         setStocks(data.stocks);
         setLastUpdated(data.fetchedAt);
         setIsLive(true);
+        setFromCache(!!data.fromCache);
         setError(null);
       } else {
         throw new Error('No stock data returned');
@@ -56,6 +59,7 @@ export function useStockData(exchange: 'NSE' | 'BSE'): StockDataResult {
       setError(err.message);
       setStocks(fallback);
       setIsLive(false);
+      setFromCache(false);
     } finally {
       setLoading(false);
     }
@@ -68,5 +72,5 @@ export function useStockData(exchange: 'NSE' | 'BSE'): StockDataResult {
     return () => clearInterval(interval);
   }, [fetchStocks]);
 
-  return { stocks, loading, error, lastUpdated, refetch: fetchStocks, isLive };
+  return { stocks, loading, error, lastUpdated, refetch: fetchStocks, isLive, fromCache };
 }

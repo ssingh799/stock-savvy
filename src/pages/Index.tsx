@@ -7,7 +7,7 @@ import { PredictionPanel } from '@/components/PredictionPanel';
 import { IPOCard } from '@/components/IPOCard';
 import { nseStocks, bseStocks, stockPredictions, ipoData, marketIndices, Stock } from '@/data/stockData';
 import { useStockData } from '@/hooks/useStockData';
-import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu, Wifi, WifiOff } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu, Wifi, WifiOff, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -219,7 +219,7 @@ interface StockViewProps {
 }
 
 const StockView = ({ stocks: fallbackStocks, exchange }: StockViewProps) => {
-  const { stocks: liveStocks, loading, error, lastUpdated, refetch, isLive } = useStockData(exchange);
+  const { stocks: liveStocks, loading, error, lastUpdated, refetch, isLive, fromCache } = useStockData(exchange);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [search, setSearch] = useState('');
   const [sectorFilter, setSectorFilter] = useState('All');
@@ -243,9 +243,11 @@ const StockView = ({ stocks: fallbackStocks, exchange }: StockViewProps) => {
           <button onClick={refetch} className="p-1.5 rounded-lg bg-surface-1 border border-border hover:border-bullish/30 transition-colors" title="Refresh">
             <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isLive ? 'bg-bullish-bg border border-bullish/20' : 'bg-gold-bg border border-gold/20'}`}>
-            {isLive ? <Wifi className="w-3 h-3 text-bullish" /> : <WifiOff className="w-3 h-3 text-gold" />}
-            <span className={`text-xs font-mono ${isLive ? 'text-bullish' : 'text-gold'}`}>{isLive ? 'LIVE' : 'CACHED'}</span>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isLive ? (fromCache ? 'bg-gold-bg border border-gold/20' : 'bg-bullish-bg border border-bullish/20') : 'bg-bearish-bg border border-bearish/20'}`}>
+            {isLive ? (fromCache ? <Database className="w-3 h-3 text-gold" /> : <Wifi className="w-3 h-3 text-bullish" />) : <WifiOff className="w-3 h-3 text-bearish" />}
+            <span className={`text-xs font-mono ${isLive ? (fromCache ? 'text-gold' : 'text-bullish') : 'text-bearish'}`}>
+              {isLive ? (fromCache ? 'CACHED' : 'LIVE') : 'OFFLINE'}
+            </span>
           </div>
         </div>
       </div>

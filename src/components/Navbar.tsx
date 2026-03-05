@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { TrendingUp, Search, X, ChevronDown } from 'lucide-react';
-
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { TrendingUp, Search, X, ChevronDown, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
 interface NavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -15,7 +17,17 @@ const tabs = [
 
 export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto px-4">
@@ -48,12 +60,32 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
             ))}
           </nav>
 
-          {/* Live badge */}
+          {/* Auth + Live badge */}
           <div className="hidden sm:flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-bullish-bg border border-bullish/30 px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 bg-bullish rounded-full live-dot" />
               <span className="text-bullish text-xs font-medium">Market Open</span>
             </div>
+            <Link to="/pricing" className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2">
+              Pricing
+            </Link>
+            {user ? (
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Logout
+              </button>
+            ) : (
+              <>
+                <Link to="/login" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2">
+                  <LogIn className="w-3.5 h-3.5" /> Login
+                </Link>
+                <Link to="/signup" className="text-xs font-medium bg-bullish text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-bullish/90 transition-colors">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu toggle */}

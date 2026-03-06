@@ -13,7 +13,6 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, 
 import { Skeleton } from '@/components/ui/skeleton';
 import marketBg from '@/assets/market-bg.jpg';
 import dashboardPreview from '@/assets/dashboard-preview.jpg';
-import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 
 // Simulate live price changes
 const useLivePrices = (stocks: Stock[]) => {
@@ -65,32 +64,31 @@ const niftyHistory = Array.from({ length: 30 }, (_, i) => ({
 const MarketView = () => (
   <div className="space-y-6 animate-fade-in">
     {/* Hero scroll section */}
-    <ContainerScroll
-      titleComponent={
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <span className="w-2 h-2 bg-bullish rounded-full live-dot" />
-            <span className="text-bullish text-xs font-medium">Markets Open · NSE & BSE</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-2">
-            Market Intelligence
-          </h1>
-          <p className="text-muted-foreground text-base mt-2">
-            AI-powered predictions · Real-time prices · IPO insights
-          </p>
-          <p className="text-4xl font-bold font-mono text-bullish mt-4">
-            23,842 <span className="text-sm text-muted-foreground font-normal">NIFTY 50 · +1.21%</span>
-          </p>
-        </div>
-      }
-    >
+    {/* Hero section */}
+    <div className="text-center py-10 md:py-16">
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <span className="w-2 h-2 bg-bullish rounded-full live-dot" />
+        <span className="text-bullish text-xs font-medium">Markets Open · NSE & BSE</span>
+      </div>
+      <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-2">
+        Market Intelligence
+      </h1>
+      <p className="text-muted-foreground text-base mt-2">
+        AI-powered predictions · Real-time prices · IPO insights
+      </p>
+      <p className="text-4xl font-bold font-mono text-bullish mt-4">
+        23,842 <span className="text-sm text-muted-foreground font-normal">NIFTY 50 · +1.21%</span>
+      </p>
+    </div>
+
+    <div className="max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl mb-8">
       <img
         src={dashboardPreview}
         alt="Market dashboard preview"
-        className="w-full h-full object-cover object-left-top"
+        className="w-full h-auto object-cover"
         loading="lazy"
       />
-    </ContainerScroll>
+    </div>
 
     <MarketOverviewCards />
 

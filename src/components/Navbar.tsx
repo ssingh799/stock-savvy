@@ -69,6 +69,9 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
             <Link to="/pricing" className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2">
               Pricing
             </Link>
+            <Link to="/about" className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2">
+              About
+            </Link>
             {user ? (
               <button
                 onClick={() => supabase.auth.signOut()}

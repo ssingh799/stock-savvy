@@ -11,8 +11,8 @@ import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu, Wifi
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
-import marketBg from '@/assets/market-bg.jpg';
 import dashboardPreview from '@/assets/dashboard-preview.jpg';
+import Hero from '@/components/ui/animated-shader-hero';
 
 // Simulate live price changes
 const useLivePrices = (stocks: Stock[]) => {

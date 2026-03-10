@@ -62,23 +62,19 @@ const niftyHistory = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 const MarketView = () => (
-  <div className="space-y-6 animate-fade-in">
-    {/* Hero scroll section */}
-    {/* Hero section */}
-    <div className="text-center py-10 md:py-16">
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <span className="w-2 h-2 bg-bullish rounded-full live-dot" />
-        <span className="text-bullish text-xs font-medium">Markets Open · NSE & BSE</span>
-      </div>
-      <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-2">
-        Market Intelligence
-      </h1>
-      <p className="text-muted-foreground text-base mt-2">
-        AI-powered predictions · Real-time prices · IPO insights
-      </p>
-      <p className="text-4xl font-bold font-mono text-bullish mt-4">
-        23,842 <span className="text-sm text-muted-foreground font-normal">NIFTY 50 · +1.21%</span>
-      </p>
+  <div className="space-y-6">
+    {/* Shader Hero */}
+    <div className="-mx-4 sm:-mx-4 -mt-6">
+      <Hero
+        trustBadge={{ text: "Markets Open · NSE & BSE", icons: ["🟢"] }}
+        headline={{ line1: "Market Intelligence", line2: "Powered by AI" }}
+        subtitle="AI-powered predictions · Real-time prices · IPO insights"
+        className="min-h-[70vh]"
+      >
+        <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+          23,842 <span className="text-sm text-muted-foreground font-normal">NIFTY 50 · +1.21%</span>
+        </p>
+      </Hero>
     </div>
 
     <div className="max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl mb-8">

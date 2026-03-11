@@ -71,14 +71,20 @@ void main(void) {
   vec3 col=vec3(0);
   float bg=clouds(vec2(st.x+T*.5,-st.y));
   uv*=1.-.3*(sin(T*.2)*.5+.5);
+  // Theme colors: bullish green (0.18, 0.72, 0.43) and gold (0.96, 0.76, 0.07)
+  vec3 greenAccent = vec3(0.18, 0.72, 0.43);
+  vec3 goldAccent = vec3(0.96, 0.76, 0.07);
+  vec3 darkBg = vec3(0.04, 0.05, 0.07);
   for (float i=1.; i<12.; i++) {
     uv+=.1*cos(i*vec2(.1+.01*i, .8)+i*i+T*.5+.1*uv.x);
     vec2 p=uv;
     float d=length(p);
-    col+=.00125/d*(cos(sin(i)*vec3(1,2,3))+1.);
+    // Mix green and gold based on iteration
+    vec3 accent = mix(greenAccent, goldAccent, sin(i*0.5)*0.5+0.5);
+    col+=.00125/d*(cos(sin(i)*vec3(2.5,4.0,1.5))*0.3+0.7)*accent;
     float b=noise(i+p+bg*1.731);
-    col+=.002*b/length(max(p,vec2(b*p.x*.02,p.y)));
-    col=mix(col,vec3(bg*.25,bg*.137,bg*.05),d);
+    col+=.002*b/length(max(p,vec2(b*p.x*.02,p.y)))*greenAccent;
+    col=mix(col,vec3(bg*.08,bg*.15,bg*.06)+darkBg*0.3,d);
   }
   O=vec4(col,1);
 }`;

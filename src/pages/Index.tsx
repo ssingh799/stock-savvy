@@ -143,8 +143,8 @@ const MarketView = () => (
     {/* Top Movers */}
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* Top Gainers */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
+        <div className="flex items-center gap-2 mb-3 depth-layer">
           <TrendingUp className="w-4 h-4 text-bullish" />
           <p className="text-sm font-semibold text-foreground">Top Gainers</p>
         </div>

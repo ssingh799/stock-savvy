@@ -120,7 +120,7 @@ const MarketView = () => (
       </div>
 
       {/* Sector Performance */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
         <p className="text-sm font-medium text-foreground mb-4">Sector Performance (Today)</p>
         <ResponsiveContainer width="100%" height={150}>
           <BarChart data={sectorData} layout="vertical" margin={{ left: 10, right: 20 }}>

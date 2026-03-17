@@ -165,8 +165,8 @@ const MarketView = () => (
       </div>
 
       {/* Top Losers */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
+        <div className="flex items-center gap-2 mb-3 depth-layer">
           <TrendingDown className="w-4 h-4 text-bearish" />
           <p className="text-sm font-semibold text-foreground">Top Losers</p>
         </div>

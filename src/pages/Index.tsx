@@ -77,7 +77,7 @@ const MarketView = () => (
       </Hero>
     </div>
 
-    <div className="max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl mb-8">
+    <div className="max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl mb-8 card-hover tilt-3d">
       <img
         src={dashboardPreview}
         alt="Market dashboard preview"
@@ -91,7 +91,7 @@ const MarketView = () => (
     {/* Charts row */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* NIFTY 50 Chart */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground">NIFTY 50</p>
@@ -120,7 +120,7 @@ const MarketView = () => (
       </div>
 
       {/* Sector Performance */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
         <p className="text-sm font-medium text-foreground mb-4">Sector Performance (Today)</p>
         <ResponsiveContainer width="100%" height={150}>
           <BarChart data={sectorData} layout="vertical" margin={{ left: 10, right: 20 }}>
@@ -143,8 +143,8 @@ const MarketView = () => (
     {/* Top Movers */}
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* Top Gainers */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
+        <div className="flex items-center gap-2 mb-3 depth-layer">
           <TrendingUp className="w-4 h-4 text-bullish" />
           <p className="text-sm font-semibold text-foreground">Top Gainers</p>
         </div>
@@ -165,8 +165,8 @@ const MarketView = () => (
       </div>
 
       {/* Top Losers */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
+        <div className="flex items-center gap-2 mb-3 depth-layer">
           <TrendingDown className="w-4 h-4 text-bearish" />
           <p className="text-sm font-semibold text-foreground">Top Losers</p>
         </div>
@@ -188,7 +188,7 @@ const MarketView = () => (
     </div>
 
     {/* All Market Indices */}
-    <div className="bg-surface-1 border border-border rounded-xl p-4">
+    <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
       <p className="text-sm font-semibold text-foreground mb-3">All Indices</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {marketIndices.map((idx) => (

@@ -27,7 +27,7 @@ export const MarketOverviewCards = () => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
       {marketIndices.slice(0, 4).map((index) => (
-        <div key={index.name} className={`bg-surface-1 border rounded-lg p-4 card-hover cursor-default ${index.bullish ? 'border-bullish/20' : 'border-bearish/20'}`}>
+        <div key={index.name} className={`bg-surface-1 border rounded-lg p-4 card-hover tilt-3d cursor-default ${index.bullish ? 'border-bullish/20' : 'border-bearish/20'}`}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-muted-foreground font-medium">{index.name}</p>
             <Activity className={`w-3.5 h-3.5 ${index.bullish ? 'text-bullish' : 'text-bearish'}`} />

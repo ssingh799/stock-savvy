@@ -47,7 +47,7 @@ export const IPOCard = ({ ipo }: IPOCardProps) => {
   const gmpPositive = ipo.gmp >= 0;
 
   return (
-    <div className={`bg-surface-1 border ${config.border} rounded-xl overflow-hidden card-hover`}>
+    <div className={`bg-surface-1 border ${config.border} rounded-xl overflow-hidden card-hover tilt-3d`}>
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-start justify-between gap-2 mb-2">

@@ -91,7 +91,7 @@ const MarketView = () => (
     {/* Charts row */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* NIFTY 50 Chart */}
-      <div className="bg-surface-1 border border-border rounded-xl p-4">
+      <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground">NIFTY 50</p>

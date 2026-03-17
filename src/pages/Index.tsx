@@ -188,7 +188,7 @@ const MarketView = () => (
     </div>
 
     {/* All Market Indices */}
-    <div className="bg-surface-1 border border-border rounded-xl p-4">
+    <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
       <p className="text-sm font-semibold text-foreground mb-3">All Indices</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {marketIndices.map((idx) => (

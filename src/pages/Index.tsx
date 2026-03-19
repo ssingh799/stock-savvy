@@ -77,14 +77,6 @@ const MarketView = () => (
       </Hero>
     </div>
 
-    <div className="max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl mb-8 card-hover tilt-3d">
-      <img
-        src={dashboardPreview}
-        alt="Market dashboard preview"
-        className="w-full h-auto object-cover"
-        loading="lazy"
-      />
-    </div>
 
     <MarketOverviewCards />
 

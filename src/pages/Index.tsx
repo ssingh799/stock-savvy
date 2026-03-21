@@ -77,6 +77,58 @@ const MarketView = () => (
       </Hero>
     </div>
 
+    {/* Live Market Summary Widget */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+      <div className="bg-surface-1 border border-bullish/20 rounded-xl p-5 card-hover tilt-3d">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground font-medium">Market Status</p>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-bullish live-dot" />
+            <span className="text-[10px] font-mono text-bullish">OPEN</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-5 h-5 text-bullish" />
+          <div>
+            <p className="font-mono font-bold text-lg text-foreground">1,247</p>
+            <p className="text-[10px] text-muted-foreground">Advances</p>
+          </div>
+          <TrendingDown className="w-5 h-5 text-bearish ml-2" />
+          <div>
+            <p className="font-mono font-bold text-lg text-foreground">853</p>
+            <p className="text-[10px] text-muted-foreground">Declines</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-surface-1 border border-border rounded-xl p-5 card-hover tilt-3d">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground font-medium">Market Volume</p>
+          <BarChart3 className="w-4 h-4 text-muted-foreground" />
+        </div>
+        <p className="font-mono font-bold text-2xl text-foreground">₹48.2K Cr</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Total turnover · <span className="text-bullish font-mono">+12.4%</span> vs avg
+        </p>
+      </div>
+
+      <div className="bg-surface-1 border border-gold/20 rounded-xl p-5 card-hover tilt-3d">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground font-medium">FII/DII Activity</p>
+          <Info className="w-4 h-4 text-gold" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">FII Net</span>
+            <span className="font-mono text-sm text-bullish font-semibold">+₹1,842 Cr</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">DII Net</span>
+            <span className="font-mono text-sm text-bearish font-semibold">-₹523 Cr</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <MarketOverviewCards />
 

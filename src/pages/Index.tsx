@@ -175,12 +175,12 @@ const MarketView = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground">NIFTY 50</p>
-            <p className="font-mono font-bold text-xl text-foreground">23,842.80</p>
+            <p className="font-mono font-bold text-xl text-foreground">{nifty?.value || '23,842.80'}</p>
           </div>
-          <span className="text-bullish text-sm font-mono font-bold">+1.21%</span>
+          <span className={`${niftyBullish ? 'text-bullish' : 'text-bearish'} text-sm font-mono font-bold`}>{niftyChange}</span>
         </div>
         <ResponsiveContainer width="100%" height={150}>
-          <AreaChart data={niftyHistory}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(152,69%,42%)" stopOpacity={0.4} />

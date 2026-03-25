@@ -166,7 +166,7 @@ const MarketView = () => {
       </div>
     </div>
 
-    <MarketOverviewCards />
+    <MarketOverviewCards indices={indices} />
 
     {/* Charts row */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

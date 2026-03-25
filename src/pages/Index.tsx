@@ -104,7 +104,11 @@ const MarketView = () => {
         className="min-h-[70vh]"
       >
         <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-          23,842 <span className="text-sm text-muted-foreground font-normal">NIFTY 50 · +1.21%</span>
+          {typeof niftyValue === 'number' ? niftyValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : niftyValue}{' '}
+          <span className={`text-sm font-normal ${niftyBullish ? 'text-bullish' : 'text-bearish'}`}>
+            NIFTY 50 · {niftyChange}
+            {isLive && <span className="ml-2 text-[10px] text-muted-foreground">{fromCache ? '(CACHED)' : '● LIVE'}</span>}
+          </span>
         </p>
       </Hero>
     </div>

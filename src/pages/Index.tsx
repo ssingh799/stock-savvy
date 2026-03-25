@@ -44,24 +44,56 @@ const useLivePrices = (stocks: Stock[]) => {
   return prices;
 };
 
-// Sector performance data
-const sectorData = [
-  { sector: 'Banking', change: 1.28 },
-  { sector: 'IT', change: -0.51 },
-  { sector: 'Pharma', change: 0.64 },
-  { sector: 'Auto', change: -0.76 },
-  { sector: 'Metal', change: 2.13 },
-  { sector: 'Energy', change: 1.51 },
-  { sector: 'FMCG', change: 0.24 },
-  { sector: 'Telecom', change: 1.92 },
-];
+// Derive sector performance from live stock data
+function deriveSectorData(stocks: Stock[]) {
+  const sectors: Record<string, { total: number; count: number }> = {};
+  stocks.forEach(s => {
+    if (!sectors[s.sector]) sectors[s.sector] = { total: 0, count: 0 };
+    sectors[s.sector].total += s.changePercent;
+    sectors[s.sector].count += 1;
+  });
+  return Object.entries(sectors).map(([sector, d]) => ({
+    sector,
+    change: parseFloat((d.total / d.count).toFixed(2)),
+  })).sort((a, b) => b.change - a.change);
+}
 
-const niftyHistory = Array.from({ length: 30 }, (_, i) => ({
-  day: i + 1,
-  value: 22800 + Math.sin(i * 0.3) * 400 + i * 35 + (Math.random() - 0.5) * 150,
-}));
+const MarketView = () => {
+  const { indices, niftyHistory, loading, isLive, fromCache, lastUpdated, refetch } = useMarketData();
+  const { stocks: nseLiveStocks } = useStockData('NSE');
+  
+  const nifty = indices.find(i => i.name === 'NIFTY 50');
+  const sensex = indices.find(i => i.name === 'SENSEX');
+  const niftyValue = nifty?.rawValue || nifty?.value || '23,842.80';
+  const niftyChange = nifty?.changePercent || '+1.21%';
+  const niftyBullish = nifty?.bullish ?? true;
 
-const MarketView = () => (
+  const stocks = nseLiveStocks.length > 0 ? nseLiveStocks : nseStocks;
+  const sectorData = deriveSectorData(stocks);
+
+  // Use live chart history or generate fallback
+  const chartData = niftyHistory.length > 0
+    ? niftyHistory
+    : Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        value: 22800 + Math.sin(i * 0.3) * 400 + i * 35 + (Math.random() - 0.5) * 150,
+      }));
+
+  // Compute advances/declines from live stocks
+  const advances = stocks.filter(s => s.change >= 0).length;
+  const declines = stocks.filter(s => s.change < 0).length;
+
+  // Total volume
+  const totalVol = stocks.reduce((sum, s) => {
+    const v = s.volume.replace(/[MK]/g, '');
+    const num = parseFloat(v);
+    if (s.volume.includes('M')) return sum + num * 1e6;
+    if (s.volume.includes('K')) return sum + num * 1e3;
+    return sum + num;
+  }, 0);
+  const totalVolStr = totalVol >= 1e7 ? `₹${(totalVol / 1e7).toFixed(1)}Cr` : `₹${(totalVol / 1e5).toFixed(1)}L`;
+
+  return (
   <div className="space-y-6">
     {/* Shader Hero */}
     <div className="-mx-4 sm:-mx-4 -mt-6">

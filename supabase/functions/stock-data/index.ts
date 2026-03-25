@@ -19,6 +19,17 @@ const BSE_SYMBOLS = [
   'BHARTIARTL.BO', 'WIPRO.BO', 'BAJFINANCE.BO', 'SUNPHARMA.BO', 'MARUTI.BO',
 ];
 
+const INDEX_SYMBOLS = [
+  { symbol: '^NSEI', name: 'NIFTY 50' },
+  { symbol: '^BSESN', name: 'SENSEX' },
+  { symbol: '^NSEBANK', name: 'NIFTY BANK' },
+  { symbol: 'NIFTY_IT.NS', name: 'NIFTY IT' },
+  { symbol: '^NSEMDCP50', name: 'NIFTY MIDCAP' },
+  { symbol: 'NIFTYAUTO.NS', name: 'NIFTY AUTO' },
+  { symbol: 'NIFTYPHARMA.NS', name: 'NIFTY PHARMA' },
+  { symbol: 'INDIA_VIX.NS', name: 'INDIA VIX' },
+];
+
 const SECTOR_MAP: Record<string, string> = {
   'RELIANCE': 'Energy', 'TCS': 'IT', 'HDFCBANK': 'Banking', 'INFY': 'IT',
   'ICICIBANK': 'Banking', 'BHARTIARTL': 'Telecom', 'WIPRO': 'IT',
@@ -99,6 +110,49 @@ async function fetchSingleChart(sym: string, retries = 2): Promise<any | null> {
   return null;
 }
 
+// Fetch historical chart data for an index (30 days)
+async function fetchChartHistory(sym: string, retries = 2): Promise<any[] | null> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1mo`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      });
+
+      if (res.status === 429 || res.status >= 500) {
+        await res.text();
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+
+      if (!res.ok) { await res.text(); return null; }
+
+      const data = await res.json();
+      const result = data?.chart?.result?.[0];
+      if (!result) return null;
+
+      const timestamps = result.timestamp || [];
+      const closes = result.indicators?.quote?.[0]?.close || [];
+
+      return timestamps.map((ts: number, i: number) => ({
+        day: i + 1,
+        value: closes[i] ? parseFloat(closes[i].toFixed(2)) : null,
+        date: new Date(ts * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+      })).filter((d: any) => d.value !== null);
+    } catch {
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
 async function fetchQuotes(symbols: string[]): Promise<any[]> {
   const results: any[] = [];
   const batchSize = 5;
@@ -120,11 +174,68 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
+    const type = url.searchParams.get('type') || 'stocks';
     const exchange = url.searchParams.get('exchange') || 'NSE';
-    const symbols = exchange === 'BSE' ? BSE_SYMBOLS : NSE_SYMBOLS;
 
-    // Check cache first
-    const cached = cache[exchange];
+    // === INDICES endpoint ===
+    if (type === 'indices') {
+      const cacheKey = 'indices';
+      const cached = cache[cacheKey];
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        return new Response(JSON.stringify({ ...cached.data, fromCache: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Fetch all index quotes
+      const indexSymbols = INDEX_SYMBOLS.map(i => i.symbol);
+      const quotes = await fetchQuotes(indexSymbols);
+
+      // Fetch NIFTY 50 chart history
+      const niftyHistory = await fetchChartHistory('^NSEI');
+
+      const indices = INDEX_SYMBOLS.map(idx => {
+        const q = quotes.find(q => q?.symbol === idx.symbol);
+        if (!q) return null;
+        const change = q.regularMarketChange;
+        const changePct = q.regularMarketChangePercent;
+        const bullish = change >= 0;
+        return {
+          name: idx.name,
+          value: q.regularMarketPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          rawValue: q.regularMarketPrice,
+          change: `${bullish ? '+' : ''}${change.toFixed(2)}`,
+          changePercent: `${bullish ? '+' : ''}${changePct.toFixed(2)}%`,
+          bullish,
+        };
+      }).filter(Boolean);
+
+      if (indices.length === 0) {
+        if (cached) {
+          return new Response(JSON.stringify({ ...cached.data, fromCache: true, stale: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        throw new Error('No index data could be fetched');
+      }
+
+      const responseData = {
+        indices,
+        niftyHistory: niftyHistory || [],
+        fetchedAt: new Date().toISOString(),
+      };
+      cache[cacheKey] = { data: responseData, timestamp: Date.now() };
+
+      return new Response(JSON.stringify(responseData), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // === STOCKS endpoint (default) ===
+    const symbols = exchange === 'BSE' ? BSE_SYMBOLS : NSE_SYMBOLS;
+    const cacheKey = `stocks_${exchange}`;
+
+    const cached = cache[cacheKey];
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return new Response(JSON.stringify({ ...cached.data, fromCache: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -134,7 +245,6 @@ Deno.serve(async (req) => {
     const quotes = await fetchQuotes(symbols);
 
     if (quotes.length === 0) {
-      // Return stale cache if available, otherwise error
       if (cached) {
         return new Response(JSON.stringify({ ...cached.data, fromCache: true, stale: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -164,14 +274,14 @@ Deno.serve(async (req) => {
     });
 
     const responseData = { stocks, fetchedAt: new Date().toISOString() };
-    cache[exchange] = { data: responseData, timestamp: Date.now() };
+    cache[cacheKey] = { data: responseData, timestamp: Date.now() };
 
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error fetching stock data:', error);
-    return new Response(JSON.stringify({ error: error.message, stocks: [] }), {
+    return new Response(JSON.stringify({ error: error.message, stocks: [], indices: [] }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

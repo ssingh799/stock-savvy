@@ -5,13 +5,13 @@ import { StockList } from '@/components/StockList';
 import { Cell } from 'recharts';
 import { PredictionPanel } from '@/components/PredictionPanel';
 import { IPOCard } from '@/components/IPOCard';
-import { nseStocks, bseStocks, stockPredictions, ipoData, marketIndices, Stock } from '@/data/stockData';
+import { nseStocks, bseStocks, stockPredictions, ipoData, Stock } from '@/data/stockData';
 import { useStockData } from '@/hooks/useStockData';
+import { useMarketData, type MarketDataResult, type LiveIndex } from '@/hooks/useMarketData';
 import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu, Wifi, WifiOff, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
-import dashboardPreview from '@/assets/dashboard-preview.jpg';
 import Hero from '@/components/ui/animated-shader-hero';
 
 // Simulate live price changes
@@ -44,24 +44,52 @@ const useLivePrices = (stocks: Stock[]) => {
   return prices;
 };
 
-// Sector performance data
-const sectorData = [
-  { sector: 'Banking', change: 1.28 },
-  { sector: 'IT', change: -0.51 },
-  { sector: 'Pharma', change: 0.64 },
-  { sector: 'Auto', change: -0.76 },
-  { sector: 'Metal', change: 2.13 },
-  { sector: 'Energy', change: 1.51 },
-  { sector: 'FMCG', change: 0.24 },
-  { sector: 'Telecom', change: 1.92 },
-];
+// Derive sector performance from live stock data
+function deriveSectorData(stocks: Stock[]) {
+  const sectors: Record<string, { total: number; count: number }> = {};
+  stocks.forEach(s => {
+    if (!sectors[s.sector]) sectors[s.sector] = { total: 0, count: 0 };
+    sectors[s.sector].total += s.changePercent;
+    sectors[s.sector].count += 1;
+  });
+  return Object.entries(sectors).map(([sector, d]) => ({
+    sector,
+    change: parseFloat((d.total / d.count).toFixed(2)),
+  })).sort((a, b) => b.change - a.change);
+}
 
-const niftyHistory = Array.from({ length: 30 }, (_, i) => ({
-  day: i + 1,
-  value: 22800 + Math.sin(i * 0.3) * 400 + i * 35 + (Math.random() - 0.5) * 150,
-}));
+const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
+  const { indices, niftyHistory, loading, isLive, fromCache, lastUpdated, refetch } = marketData;
+  const { stocks: nseLiveStocks } = useStockData('NSE');
+  
+  const nifty = indices.find(i => i.name === 'NIFTY 50');
+  const niftyValue = nifty?.rawValue || nifty?.value || '23,842.80';
+  const niftyChange = nifty?.changePercent || '+1.21%';
+  const niftyBullish = nifty?.bullish ?? true;
 
-const MarketView = () => (
+  const stocks = nseLiveStocks.length > 0 ? nseLiveStocks : nseStocks;
+  const sectorData = deriveSectorData(stocks);
+
+  const chartData = niftyHistory.length > 0
+    ? niftyHistory
+    : Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        value: 22800 + Math.sin(i * 0.3) * 400 + i * 35 + (Math.random() - 0.5) * 150,
+      }));
+
+  const advances = stocks.filter(s => s.change >= 0).length;
+  const declines = stocks.filter(s => s.change < 0).length;
+
+  const totalVol = stocks.reduce((sum, s) => {
+    const v = s.volume.replace(/[MK]/g, '');
+    const num = parseFloat(v);
+    if (s.volume.includes('M')) return sum + num * 1e6;
+    if (s.volume.includes('K')) return sum + num * 1e3;
+    return sum + num;
+  }, 0);
+  const totalVolStr = totalVol >= 1e7 ? `₹${(totalVol / 1e7).toFixed(1)}Cr` : `₹${(totalVol / 1e5).toFixed(1)}L`;
+
+  return (
   <div className="space-y-6">
     {/* Shader Hero */}
     <div className="-mx-4 sm:-mx-4 -mt-6">
@@ -72,7 +100,11 @@ const MarketView = () => (
         className="min-h-[70vh]"
       >
         <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-          23,842 <span className="text-sm text-muted-foreground font-normal">NIFTY 50 · +1.21%</span>
+          {typeof niftyValue === 'number' ? niftyValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : niftyValue}{' '}
+          <span className={`text-sm font-normal ${niftyBullish ? 'text-bullish' : 'text-bearish'}`}>
+            NIFTY 50 · {niftyChange}
+            {isLive && <span className="ml-2 text-[10px] text-muted-foreground">{fromCache ? '(CACHED)' : '● LIVE'}</span>}
+          </span>
         </p>
       </Hero>
     </div>
@@ -90,12 +122,12 @@ const MarketView = () => (
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-bullish" />
           <div>
-            <p className="font-mono font-bold text-lg text-foreground">1,247</p>
+            <p className="font-mono font-bold text-lg text-foreground">{advances}</p>
             <p className="text-[10px] text-muted-foreground">Advances</p>
           </div>
           <TrendingDown className="w-5 h-5 text-bearish ml-2" />
           <div>
-            <p className="font-mono font-bold text-lg text-foreground">853</p>
+            <p className="font-mono font-bold text-lg text-foreground">{declines}</p>
             <p className="text-[10px] text-muted-foreground">Declines</p>
           </div>
         </div>
@@ -106,9 +138,9 @@ const MarketView = () => (
           <p className="text-xs text-muted-foreground font-medium">Market Volume</p>
           <BarChart3 className="w-4 h-4 text-muted-foreground" />
         </div>
-        <p className="font-mono font-bold text-2xl text-foreground">₹48.2K Cr</p>
+        <p className="font-mono font-bold text-2xl text-foreground">{totalVolStr}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Total turnover · <span className="text-bullish font-mono">+12.4%</span> vs avg
+          Total traded volume
         </p>
       </div>
 
@@ -130,7 +162,7 @@ const MarketView = () => (
       </div>
     </div>
 
-    <MarketOverviewCards />
+    <MarketOverviewCards indices={indices} />
 
     {/* Charts row */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -139,12 +171,12 @@ const MarketView = () => (
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground">NIFTY 50</p>
-            <p className="font-mono font-bold text-xl text-foreground">23,842.80</p>
+            <p className="font-mono font-bold text-xl text-foreground">{nifty?.value || '23,842.80'}</p>
           </div>
-          <span className="text-bullish text-sm font-mono font-bold">+1.21%</span>
+          <span className={`${niftyBullish ? 'text-bullish' : 'text-bearish'} text-sm font-mono font-bold`}>{niftyChange}</span>
         </div>
         <ResponsiveContainer width="100%" height={150}>
-          <AreaChart data={niftyHistory}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(152,69%,42%)" stopOpacity={0.4} />
@@ -193,7 +225,7 @@ const MarketView = () => (
           <p className="text-sm font-semibold text-foreground">Top Gainers</p>
         </div>
         <div className="space-y-2">
-          {[...nseStocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 5).map((s) => (
+          {[...stocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 5).map((s) => (
             <div key={s.symbol} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
               <div>
                 <p className="text-xs font-mono font-bold text-foreground">{s.symbol}</p>
@@ -215,7 +247,7 @@ const MarketView = () => (
           <p className="text-sm font-semibold text-foreground">Top Losers</p>
         </div>
         <div className="space-y-2">
-          {[...nseStocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 5).map((s) => (
+          {[...stocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 5).map((s) => (
             <div key={s.symbol} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
               <div>
                 <p className="text-xs font-mono font-bold text-foreground">{s.symbol}</p>
@@ -233,9 +265,17 @@ const MarketView = () => (
 
     {/* All Market Indices */}
     <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
-      <p className="text-sm font-semibold text-foreground mb-3">All Indices</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold text-foreground">All Indices</p>
+        {isLive && (
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-bullish live-dot" />
+            <span className="text-[10px] font-mono text-bullish">LIVE</span>
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {marketIndices.map((idx) => (
+        {indices.map((idx) => (
           <div key={idx.name} className={`rounded-lg p-3 ${idx.bullish ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
             <p className="text-[10px] text-muted-foreground mb-1">{idx.name}</p>
             <p className="font-mono font-bold text-foreground text-sm">{idx.value}</p>
@@ -249,13 +289,14 @@ const MarketView = () => (
     <div className="flex gap-2 bg-gold-bg border border-gold/20 rounded-xl p-3">
       <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
       <p className="text-xs text-muted-foreground">
-        <span className="text-gold font-medium">Data Notice:</span> Prices shown are simulated for demonstration. 
-        Real-time NSE/BSE data requires a licensed data provider API (NSEpy, MarketStack, etc.) connected via backend. 
+        <span className="text-gold font-medium">Data Source:</span> Market data powered by Yahoo Finance.
+        {isLive ? ' Showing live data with auto-refresh.' : ' Currently showing fallback data.'}{' '}
         AI predictions are for educational purposes only — not financial advice.
       </p>
     </div>
   </div>
-);
+  );
+};
 
 interface StockViewProps {
   stocks: Stock[];
@@ -446,14 +487,15 @@ const IPOView = () => {
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('market');
+  const marketData = useMarketData();
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
-      <MarketTicker />
+      <MarketTicker indices={marketData.indices} />
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
-        {activeTab === 'market' && <MarketView />}
+        {activeTab === 'market' && <MarketView marketData={marketData} />}
         {activeTab === 'nse' && <StockView stocks={nseStocks} exchange="NSE" />}
         {activeTab === 'bse' && <StockView stocks={bseStocks} exchange="BSE" />}
         {activeTab === 'ipo' && <IPOView />}

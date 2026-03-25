@@ -126,12 +126,12 @@ const MarketView = () => {
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-bullish" />
           <div>
-            <p className="font-mono font-bold text-lg text-foreground">1,247</p>
+            <p className="font-mono font-bold text-lg text-foreground">{advances}</p>
             <p className="text-[10px] text-muted-foreground">Advances</p>
           </div>
           <TrendingDown className="w-5 h-5 text-bearish ml-2" />
           <div>
-            <p className="font-mono font-bold text-lg text-foreground">853</p>
+            <p className="font-mono font-bold text-lg text-foreground">{declines}</p>
             <p className="text-[10px] text-muted-foreground">Declines</p>
           </div>
         </div>

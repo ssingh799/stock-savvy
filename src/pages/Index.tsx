@@ -491,14 +491,15 @@ const IPOView = () => {
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('market');
+  const marketData = useMarketData();
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
-      <MarketTicker />
+      <MarketTicker indices={marketData.indices} />
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
-        {activeTab === 'market' && <MarketView />}
+        {activeTab === 'market' && <MarketView marketData={marketData} />}
         {activeTab === 'nse' && <StockView stocks={nseStocks} exchange="NSE" />}
         {activeTab === 'bse' && <StockView stocks={bseStocks} exchange="BSE" />}
         {activeTab === 'ipo' && <IPOView />}

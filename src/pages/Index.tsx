@@ -142,9 +142,9 @@ const MarketView = () => {
           <p className="text-xs text-muted-foreground font-medium">Market Volume</p>
           <BarChart3 className="w-4 h-4 text-muted-foreground" />
         </div>
-        <p className="font-mono font-bold text-2xl text-foreground">₹48.2K Cr</p>
+        <p className="font-mono font-bold text-2xl text-foreground">{totalVolStr}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Total turnover · <span className="text-bullish font-mono">+12.4%</span> vs avg
+          Total traded volume
         </p>
       </div>
 

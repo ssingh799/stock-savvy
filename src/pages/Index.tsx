@@ -5,13 +5,13 @@ import { StockList } from '@/components/StockList';
 import { Cell } from 'recharts';
 import { PredictionPanel } from '@/components/PredictionPanel';
 import { IPOCard } from '@/components/IPOCard';
-import { nseStocks, bseStocks, stockPredictions, ipoData, marketIndices, Stock } from '@/data/stockData';
+import { nseStocks, bseStocks, stockPredictions, ipoData, Stock } from '@/data/stockData';
 import { useStockData } from '@/hooks/useStockData';
+import { useMarketData, LiveIndex } from '@/hooks/useMarketData';
 import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw, Info, Cpu, Wifi, WifiOff, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
-import dashboardPreview from '@/assets/dashboard-preview.jpg';
 import Hero from '@/components/ui/animated-shader-hero';
 
 // Simulate live price changes

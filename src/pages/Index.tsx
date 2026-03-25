@@ -229,7 +229,7 @@ const MarketView = () => {
           <p className="text-sm font-semibold text-foreground">Top Gainers</p>
         </div>
         <div className="space-y-2">
-          {[...nseStocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 5).map((s) => (
+          {[...stocks].sort((a, b) => b.changePercent - a.changePercent).slice(0, 5).map((s) => (
             <div key={s.symbol} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
               <div>
                 <p className="text-xs font-mono font-bold text-foreground">{s.symbol}</p>
@@ -251,7 +251,7 @@ const MarketView = () => {
           <p className="text-sm font-semibold text-foreground">Top Losers</p>
         </div>
         <div className="space-y-2">
-          {[...nseStocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 5).map((s) => (
+          {[...stocks].sort((a, b) => a.changePercent - b.changePercent).slice(0, 5).map((s) => (
             <div key={s.symbol} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
               <div>
                 <p className="text-xs font-mono font-bold text-foreground">{s.symbol}</p>

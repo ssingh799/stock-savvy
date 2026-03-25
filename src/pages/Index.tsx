@@ -61,6 +61,35 @@ function deriveSectorData(stocks: Stock[]) {
 const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
   const { indices, niftyHistory, loading, isLive, fromCache, lastUpdated, refetch } = marketData;
   const { stocks: nseLiveStocks } = useStockData('NSE');
+  
+  const nifty = indices.find(i => i.name === 'NIFTY 50');
+  const niftyValue = nifty?.rawValue || nifty?.value || '23,842.80';
+  const niftyChange = nifty?.changePercent || '+1.21%';
+  const niftyBullish = nifty?.bullish ?? true;
+
+  const stocks = nseLiveStocks.length > 0 ? nseLiveStocks : nseStocks;
+  const sectorData = deriveSectorData(stocks);
+
+  const chartData = niftyHistory.length > 0
+    ? niftyHistory
+    : Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        value: 22800 + Math.sin(i * 0.3) * 400 + i * 35 + (Math.random() - 0.5) * 150,
+      }));
+
+  const advances = stocks.filter(s => s.change >= 0).length;
+  const declines = stocks.filter(s => s.change < 0).length;
+
+  const totalVol = stocks.reduce((sum, s) => {
+    const v = s.volume.replace(/[MK]/g, '');
+    const num = parseFloat(v);
+    if (s.volume.includes('M')) return sum + num * 1e6;
+    if (s.volume.includes('K')) return sum + num * 1e3;
+    return sum + num;
+  }, 0);
+  const totalVolStr = totalVol >= 1e7 ? `₹${(totalVol / 1e7).toFixed(1)}Cr` : `₹${(totalVol / 1e5).toFixed(1)}L`;
+
+  return (
   <div className="space-y-6">
     {/* Shader Hero */}
     <div className="-mx-4 sm:-mx-4 -mt-6">

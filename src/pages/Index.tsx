@@ -269,9 +269,17 @@ const MarketView = () => {
 
     {/* All Market Indices */}
     <div className="bg-surface-1 border border-border rounded-xl p-4 card-hover tilt-3d">
-      <p className="text-sm font-semibold text-foreground mb-3">All Indices</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold text-foreground">All Indices</p>
+        {isLive && (
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-bullish live-dot" />
+            <span className="text-[10px] font-mono text-bullish">LIVE</span>
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {marketIndices.map((idx) => (
+        {indices.map((idx) => (
           <div key={idx.name} className={`rounded-lg p-3 ${idx.bullish ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
             <p className="text-[10px] text-muted-foreground mb-1">{idx.name}</p>
             <p className="font-mono font-bold text-foreground text-sm">{idx.value}</p>
@@ -285,13 +293,14 @@ const MarketView = () => {
     <div className="flex gap-2 bg-gold-bg border border-gold/20 rounded-xl p-3">
       <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
       <p className="text-xs text-muted-foreground">
-        <span className="text-gold font-medium">Data Notice:</span> Prices shown are simulated for demonstration. 
-        Real-time NSE/BSE data requires a licensed data provider API (NSEpy, MarketStack, etc.) connected via backend. 
+        <span className="text-gold font-medium">Data Source:</span> Market data powered by Yahoo Finance.
+        {isLive ? ' Showing live data with auto-refresh.' : ' Currently showing fallback data.'}{' '}
         AI predictions are for educational purposes only — not financial advice.
       </p>
     </div>
   </div>
-);
+  );
+};
 
 interface StockViewProps {
   stocks: Stock[];

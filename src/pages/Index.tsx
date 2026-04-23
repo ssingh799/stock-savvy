@@ -99,13 +99,20 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
         subtitle="AI-powered predictions · Real-time prices · IPO insights"
         className="min-h-[70vh]"
       >
-        <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-          {typeof niftyValue === 'number' ? niftyValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : niftyValue}{' '}
-          <span className={`text-sm font-normal ${niftyBullish ? 'text-bullish' : 'text-bearish'}`}>
-            NIFTY 50 · {niftyChange}
-            {isLive && <span className="ml-2 text-[10px] text-muted-foreground">{fromCache ? '(CACHED)' : '● LIVE'}</span>}
-          </span>
-        </p>
+        {loading && !isLive ? (
+          <div className="mt-6 flex items-center gap-3 animate-fade-in">
+            <Skeleton className="h-10 w-48 bg-surface-2" />
+            <Skeleton className="h-4 w-32 bg-surface-2" />
+          </div>
+        ) : (
+          <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            {typeof niftyValue === 'number' ? niftyValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : niftyValue}{' '}
+            <span className={`text-sm font-normal ${niftyBullish ? 'text-bullish' : 'text-bearish'}`}>
+              NIFTY 50 · {niftyChange}
+              {isLive && <span className="ml-2 text-[10px] text-muted-foreground">{fromCache ? '(CACHED)' : '● LIVE'}</span>}
+            </span>
+          </p>
+        )}
       </Hero>
     </div>
 
@@ -162,7 +169,15 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
       </div>
     </div>
 
-    <MarketOverviewCards indices={indices} />
+    {loading && !isLive ? (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 bg-surface-1" />
+        ))}
+      </div>
+    ) : (
+      <MarketOverviewCards indices={indices} />
+    )}
 
     {/* Charts row */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -175,24 +190,28 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
           </div>
           <span className={`${niftyBullish ? 'text-bullish' : 'text-bearish'} text-sm font-mono font-bold`}>{niftyChange}</span>
         </div>
-        <ResponsiveContainer width="100%" height={150}>
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(152,69%,42%)" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="hsl(152,69%,42%)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="day" hide />
-            <YAxis hide domain={['auto', 'auto']} />
-            <Tooltip
-              contentStyle={{ background: 'hsl(220,18%,11%)', border: '1px solid hsl(220,15%,18%)', borderRadius: '8px', fontSize: '11px' }}
-              itemStyle={{ color: 'hsl(152,69%,42%)' }}
-              formatter={(v: number) => [v.toFixed(0), 'NIFTY']}
-            />
-            <Area type="monotone" dataKey="value" stroke="hsl(152,69%,42%)" fill="url(#niftyGrad)" strokeWidth={2} dot={false} />
-          </AreaChart>
-        </ResponsiveContainer>
+        {loading && niftyHistory.length === 0 ? (
+          <Skeleton className="w-full h-[150px] bg-surface-2" />
+        ) : (
+          <ResponsiveContainer width="100%" height={150}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(152,69%,42%)" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(152,69%,42%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="day" hide />
+              <YAxis hide domain={['auto', 'auto']} />
+              <Tooltip
+                contentStyle={{ background: 'hsl(220,18%,11%)', border: '1px solid hsl(220,15%,18%)', borderRadius: '8px', fontSize: '11px' }}
+                itemStyle={{ color: 'hsl(152,69%,42%)' }}
+                formatter={(v: number) => [v.toFixed(0), 'NIFTY']}
+              />
+              <Area type="monotone" dataKey="value" stroke="hsl(152,69%,42%)" fill="url(#niftyGrad)" strokeWidth={2} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Sector Performance */}
@@ -275,13 +294,17 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
         )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {indices.map((idx) => (
-          <div key={idx.name} className={`rounded-lg p-3 ${idx.bullish ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
-            <p className="text-[10px] text-muted-foreground mb-1">{idx.name}</p>
-            <p className="font-mono font-bold text-foreground text-sm">{idx.value}</p>
-            <p className={`font-mono text-xs ${idx.bullish ? 'text-bullish' : 'text-bearish'}`}>{idx.changePercent}</p>
-          </div>
-        ))}
+        {loading && !isLive
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 bg-surface-2 rounded-lg" />
+            ))
+          : indices.map((idx) => (
+              <div key={idx.name} className={`rounded-lg p-3 ${idx.bullish ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
+                <p className="text-[10px] text-muted-foreground mb-1">{idx.name}</p>
+                <p className="font-mono font-bold text-foreground text-sm">{idx.value}</p>
+                <p className={`font-mono text-xs ${idx.bullish ? 'text-bullish' : 'text-bearish'}`}>{idx.changePercent}</p>
+              </div>
+            ))}
       </div>
     </div>
 

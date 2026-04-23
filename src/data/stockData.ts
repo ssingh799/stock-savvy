@@ -67,6 +67,12 @@ export interface IPO {
   predictionReason: string;
   rating: number;
   status: 'OPEN' | 'UPCOMING' | 'LISTED' | 'CLOSED';
+  exchange?: 'NSE' | 'BSE' | 'NSE & BSE';
+  leadManager?: string;
+  registrar?: string;
+  listingPrice?: number;
+  listingGainPercent?: number;
+  faceValue?: number;
 }
 
 export const nseStocks: Stock[] = [

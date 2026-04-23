@@ -99,13 +99,20 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
         subtitle="AI-powered predictions · Real-time prices · IPO insights"
         className="min-h-[70vh]"
       >
-        <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-          {typeof niftyValue === 'number' ? niftyValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : niftyValue}{' '}
-          <span className={`text-sm font-normal ${niftyBullish ? 'text-bullish' : 'text-bearish'}`}>
-            NIFTY 50 · {niftyChange}
-            {isLive && <span className="ml-2 text-[10px] text-muted-foreground">{fromCache ? '(CACHED)' : '● LIVE'}</span>}
-          </span>
-        </p>
+        {loading && !isLive ? (
+          <div className="mt-6 flex items-center gap-3 animate-fade-in">
+            <Skeleton className="h-10 w-48 bg-surface-2" />
+            <Skeleton className="h-4 w-32 bg-surface-2" />
+          </div>
+        ) : (
+          <p className="text-4xl font-bold font-mono text-primary mt-6 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            {typeof niftyValue === 'number' ? niftyValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : niftyValue}{' '}
+            <span className={`text-sm font-normal ${niftyBullish ? 'text-bullish' : 'text-bearish'}`}>
+              NIFTY 50 · {niftyChange}
+              {isLive && <span className="ml-2 text-[10px] text-muted-foreground">{fromCache ? '(CACHED)' : '● LIVE'}</span>}
+            </span>
+          </p>
+        )}
       </Hero>
     </div>
 

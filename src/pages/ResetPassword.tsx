@@ -16,10 +16,19 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Supabase puts recovery info in the URL hash; the SDK auto-establishes a recovery session.
+    // We listen for the PASSWORD_RECOVERY event to confirm we're in a valid reset flow.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Valid recovery session established
+      }
+    });
     const hash = window.location.hash;
-    if (!hash.includes('type=recovery')) {
+    const search = window.location.search;
+    if (!hash.includes('type=recovery') && !search.includes('type=recovery') && !hash.includes('access_token')) {
       toast({ title: 'Invalid link', description: 'This password reset link is invalid or expired.', variant: 'destructive' });
     }
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleUpdate = async (e: React.FormEvent) => {

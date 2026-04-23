@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { TrendingUp, Search, X, ChevronDown, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { TrendingUp, ChevronDown, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
 interface NavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -18,6 +19,8 @@ const tabs = [
 export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -28,6 +31,16 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ title: 'Logout failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Signed out', description: 'See you again soon!' });
+      navigate('/');
+    }
+  };
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto px-4">
@@ -76,12 +89,23 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
               Contact
             </Link>
             {user ? (
-              <button
-                onClick={() => supabase.auth.signOut()}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2"
-              >
-                <LogOut className="w-3.5 h-3.5" /> Logout
-              </button>
+              <div className="flex items-center gap-2 ml-1">
+                <div className="flex items-center gap-1.5 bg-surface-2 border border-border px-2.5 py-1 rounded-full">
+                  <div className="w-5 h-5 rounded-full bg-bullish/20 flex items-center justify-center">
+                    <UserIcon className="w-3 h-3 text-bullish" />
+                  </div>
+                  <span className="text-xs text-foreground font-medium max-w-[140px] truncate">
+                    {user.email}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-bearish transition-colors px-2"
+                  title="Sign out"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Logout
+                </button>
+              </div>
             ) : (
               <>
                 <Link to="/login" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2">

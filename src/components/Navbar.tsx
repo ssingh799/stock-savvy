@@ -19,6 +19,8 @@ const tabs = [
 export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -29,6 +31,16 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ title: 'Logout failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Signed out', description: 'See you again soon!' });
+      navigate('/');
+    }
+  };
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto px-4">

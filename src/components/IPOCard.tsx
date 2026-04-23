@@ -124,7 +124,50 @@ export const IPOCard = ({ ipo }: IPOCardProps) => {
           <span className="text-muted-foreground">Listing:</span>
           <span className="text-foreground font-medium ml-1">{ipo.listingDate}</span>
         </div>
+        {ipo.faceValue !== undefined && (
+          <div>
+            <span className="text-muted-foreground">Face Value:</span>
+            <span className="text-foreground font-medium ml-1">₹{ipo.faceValue}</span>
+          </div>
+        )}
+        {ipo.exchange && (
+          <div>
+            <span className="text-muted-foreground">Exchange:</span>
+            <span className="text-foreground font-medium ml-1">{ipo.exchange}</span>
+          </div>
+        )}
+        {ipo.leadManager && (
+          <div className="col-span-2">
+            <span className="text-muted-foreground">Lead Manager:</span>
+            <span className="text-foreground font-medium ml-1">{ipo.leadManager}</span>
+          </div>
+        )}
+        {ipo.registrar && (
+          <div className="col-span-2">
+            <span className="text-muted-foreground">Registrar:</span>
+            <span className="text-foreground font-medium ml-1">{ipo.registrar}</span>
+          </div>
+        )}
       </div>
+
+      {/* Listing result (for closed/listed IPOs) */}
+      {ipo.listingPrice !== undefined && ipo.listingGainPercent !== undefined && (
+        <div className={`px-4 py-3 border-b border-border ${ipo.listingGainPercent >= 0 ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Listing Price</p>
+              <p className="font-mono font-bold text-foreground text-sm">₹{ipo.listingPrice}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Listing Gain</p>
+              <p className={`font-mono font-bold text-sm flex items-center gap-1 ${ipo.listingGainPercent >= 0 ? 'text-bullish' : 'text-bearish'}`}>
+                {ipo.listingGainPercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {ipo.listingGainPercent >= 0 ? '+' : ''}{ipo.listingGainPercent}%
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AI Prediction */}
       <div className={`p-4 ${config.bg}`}>

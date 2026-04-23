@@ -294,13 +294,17 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
         )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {indices.map((idx) => (
-          <div key={idx.name} className={`rounded-lg p-3 ${idx.bullish ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
-            <p className="text-[10px] text-muted-foreground mb-1">{idx.name}</p>
-            <p className="font-mono font-bold text-foreground text-sm">{idx.value}</p>
-            <p className={`font-mono text-xs ${idx.bullish ? 'text-bullish' : 'text-bearish'}`}>{idx.changePercent}</p>
-          </div>
-        ))}
+        {loading && !isLive
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 bg-surface-2 rounded-lg" />
+            ))
+          : indices.map((idx) => (
+              <div key={idx.name} className={`rounded-lg p-3 ${idx.bullish ? 'bg-bullish-bg' : 'bg-bearish-bg'}`}>
+                <p className="text-[10px] text-muted-foreground mb-1">{idx.name}</p>
+                <p className="font-mono font-bold text-foreground text-sm">{idx.value}</p>
+                <p className={`font-mono text-xs ${idx.bullish ? 'text-bullish' : 'text-bearish'}`}>{idx.changePercent}</p>
+              </div>
+            ))}
       </div>
     </div>
 

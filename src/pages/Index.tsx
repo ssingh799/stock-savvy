@@ -169,7 +169,15 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
       </div>
     </div>
 
-    <MarketOverviewCards indices={indices} />
+    {loading && !isLive ? (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 bg-surface-1" />
+        ))}
+      </div>
+    ) : (
+      <MarketOverviewCards indices={indices} />
+    )}
 
     {/* Charts row */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

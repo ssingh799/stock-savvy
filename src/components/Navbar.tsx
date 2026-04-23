@@ -90,14 +90,18 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
             </Link>
             {user ? (
               <div className="flex items-center gap-2 ml-1">
-                <div className="flex items-center gap-1.5 bg-surface-2 border border-border px-2.5 py-1 rounded-full">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-1.5 bg-surface-2 border border-border px-2.5 py-1 rounded-full hover:border-bullish/40 transition-colors"
+                  title="View profile"
+                >
                   <div className="w-5 h-5 rounded-full bg-bullish/20 flex items-center justify-center">
                     <UserIcon className="w-3 h-3 text-bullish" />
                   </div>
                   <span className="text-xs text-foreground font-medium max-w-[140px] truncate">
                     {user.email}
                   </span>
-                </div>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-bearish transition-colors px-2"

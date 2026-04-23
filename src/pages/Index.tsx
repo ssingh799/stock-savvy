@@ -190,24 +190,28 @@ const MarketView = ({ marketData }: { marketData: MarketDataResult }) => {
           </div>
           <span className={`${niftyBullish ? 'text-bullish' : 'text-bearish'} text-sm font-mono font-bold`}>{niftyChange}</span>
         </div>
-        <ResponsiveContainer width="100%" height={150}>
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(152,69%,42%)" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="hsl(152,69%,42%)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="day" hide />
-            <YAxis hide domain={['auto', 'auto']} />
-            <Tooltip
-              contentStyle={{ background: 'hsl(220,18%,11%)', border: '1px solid hsl(220,15%,18%)', borderRadius: '8px', fontSize: '11px' }}
-              itemStyle={{ color: 'hsl(152,69%,42%)' }}
-              formatter={(v: number) => [v.toFixed(0), 'NIFTY']}
-            />
-            <Area type="monotone" dataKey="value" stroke="hsl(152,69%,42%)" fill="url(#niftyGrad)" strokeWidth={2} dot={false} />
-          </AreaChart>
-        </ResponsiveContainer>
+        {loading && niftyHistory.length === 0 ? (
+          <Skeleton className="w-full h-[150px] bg-surface-2" />
+        ) : (
+          <ResponsiveContainer width="100%" height={150}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="niftyGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(152,69%,42%)" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(152,69%,42%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="day" hide />
+              <YAxis hide domain={['auto', 'auto']} />
+              <Tooltip
+                contentStyle={{ background: 'hsl(220,18%,11%)', border: '1px solid hsl(220,15%,18%)', borderRadius: '8px', fontSize: '11px' }}
+                itemStyle={{ color: 'hsl(152,69%,42%)' }}
+                formatter={(v: number) => [v.toFixed(0), 'NIFTY']}
+              />
+              <Area type="monotone" dataKey="value" stroke="hsl(152,69%,42%)" fill="url(#niftyGrad)" strokeWidth={2} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Sector Performance */}

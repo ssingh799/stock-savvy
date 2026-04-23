@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { TrendingUp, Search, X, ChevronDown, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { TrendingUp, ChevronDown, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
 interface NavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;

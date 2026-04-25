@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, ChevronDown, LogIn, LogOut, User as UserIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@supabase/supabase-js';
+import { TrendingUp, ChevronDown, LogIn, LogOut, User as UserIcon, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 interface NavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -18,27 +17,18 @@ const tabs = [
 
 export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const { user, hasRole, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({ title: 'Logout failed', description: error.message, variant: 'destructive' });
-    } else {
+    try {
+      await signOut();
       toast({ title: 'Signed out', description: 'See you again soon!' });
       navigate('/');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast({ title: 'Logout failed', description: message, variant: 'destructive' });
     }
   };
   return (
@@ -88,6 +78,11 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
             <Link to="/contact" className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2">
               Contact
             </Link>
+            {user && hasRole('admin') && (
+              <Link to="/admin" className="flex items-center gap-1 text-xs text-bullish hover:text-bullish/80 transition-colors px-2" title="Admin panel">
+                <Shield className="w-3.5 h-3.5" /> Admin
+              </Link>
+            )}
             {user ? (
               <div className="flex items-center gap-2 ml-1">
                 <Link

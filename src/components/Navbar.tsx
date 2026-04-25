@@ -78,6 +78,11 @@ export const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
             <Link to="/contact" className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2">
               Contact
             </Link>
+            {user && hasRole('admin') && (
+              <Link to="/admin" className="flex items-center gap-1 text-xs text-bullish hover:text-bullish/80 transition-colors px-2" title="Admin panel">
+                <Shield className="w-3.5 h-3.5" /> Admin
+              </Link>
+            )}
             {user ? (
               <div className="flex items-center gap-2 ml-1">
                 <Link
